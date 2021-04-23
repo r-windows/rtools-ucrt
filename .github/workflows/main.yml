@@ -1,0 +1,73 @@
+name: main
+
+on:
+  push:
+    paths:
+      - 'mingw-w64-*/*'
+  pull_request:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        include: [
+          { msystem: ucrt64, arch: ucrt-x86_64, repo: ucrt64 }
+#          { msystem: mingw64, arch: x86_64, repo: mingw64-testing },
+#          { msystem: mingw32, arch: i686 , repo: mingw32-testing },
+        ]
+      fail-fast: false
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: MSYS
+          install: git mingw-w64-${{ matrix.arch }}-toolchain
+          update: true
+
+      - name: CI-Build
+        run: MINGW_ARCH=${{ matrix.msystem }} ./ci-build.sh
+        env:
+          BUILD_URL: https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}
+          BINTRAY_REPOSITORY: ${{ matrix.repo }}
+          PACMAN_REPOSITORY: ${{ matrix.repo }}
+
+      - name: "Upload binary package"
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ matrix.repo }}
+          path: artifacts/
+
+      # - name: "Upload source package"
+      #   uses: actions/upload-artifact@v2
+      #   with:
+      #     name: sources
+      #     path: sourcepkg/
+
+  deploy:
+    name: Deploy to staging server
+    runs-on: ubuntu-20.04
+    needs: [build]
+    if: success() && github.ref == 'refs/heads/master'
+    steps:
+      - name: Get artifacts for deployment
+        uses: actions/download-artifact@v2
+      - id: deployment
+        name: Uploading files
+        run: |
+          ls -ltrR
+          mkdir -p ~/.ssh
+          echo "StrictHostKeyChecking no" > ~/.ssh/config
+          echo "${STAGINGKEY}" > ~/.ssh/id_rsa && chmod 400 ~/.ssh/id_rsa
+          echo 'put -pr .' | sftp "${STAGINGUSER}@ftp.opencpu.org:/rtools"
+          rm -f ~/.ssh/id_rsa
+        env:
+          STAGINGUSER: ${{ secrets.STAGINGUSER }}
+          STAGINGKEY: ${{ secrets.STAGINGKEY }}
