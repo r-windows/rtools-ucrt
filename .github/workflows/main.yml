@@ -12,9 +12,7 @@ jobs:
     strategy:
       matrix:
         include: [
-          { msystem: ucrt64, arch: ucrt-x86_64, repo: ucrt64 }
-#          { msystem: mingw64, arch: x86_64, repo: mingw64-testing },
-#          { msystem: mingw32, arch: i686 , repo: mingw32-testing },
+          { msystem: ucrt64, toolchain: ucrt-x86_64 }
         ]
       fail-fast: false
     defaults:
@@ -29,20 +27,21 @@ jobs:
       - uses: msys2/setup-msys2@v2
         with:
           msystem: MSYS
-          install: git mingw-w64-${{ matrix.arch }}-toolchain
+          install: git
           update: true
 
       - name: CI-Build
-        run: MINGW_ARCH=${{ matrix.msystem }} ./ci-build.sh
+        run: ./ci-build.sh
         env:
           BUILD_URL: https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}
-          BINTRAY_REPOSITORY: ${{ matrix.repo }}
-          PACMAN_REPOSITORY: ${{ matrix.repo }}
+          MINGW_ARCH: ${{ matrix.msystem }}
+          MINGW_TOOLCHAIN: ${{ matrix.toolchain }}
+          PACMAN_REPOSITORY: ${{ matrix.msystem }}
 
       - name: "Upload binary package"
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ matrix.repo }}
+          name: ${{ matrix.msystem }}
           path: artifacts/
 
       # - name: "Upload source package"
@@ -50,7 +49,6 @@ jobs:
       #   with:
       #     name: sources
       #     path: sourcepkg/
-
   deploy:
     name: Deploy to staging server
     runs-on: ubuntu-20.04
