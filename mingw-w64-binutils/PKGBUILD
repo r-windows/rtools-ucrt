@@ -1,0 +1,125 @@
+# Maintainer: Alexey Pavlov <alexpux@gmail.com>
+# Contributor: Ray Donnelly <mingw.android@gmail.com>
+# Contributor: Mateusz Mikula <mati865@gmail.com>
+
+_realname=binutils
+pkgbase=mingw-w64-${_realname}
+pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}")
+pkgver=2.36.1
+pkgrel=9800
+pkgdesc="A set of programs to assemble and manipulate binary and object files (mingw-w64)"
+arch=('any')
+url="https://www.gnu.org/software/binutils/"
+license=('GPL')
+groups=("${MINGW_PACKAGE_PREFIX}-toolchain")
+depends=("${MINGW_PACKAGE_PREFIX}-libiconv" "${MINGW_PACKAGE_PREFIX}-zlib")
+makedepends=("${MINGW_PACKAGE_PREFIX}-libiconv" "${MINGW_PACKAGE_PREFIX}-zlib")
+options=('staticlibs' '!distcc' '!ccache')
+source=(https://ftp.gnu.org/gnu/binutils/${_realname}-${pkgver}.tar.xz{,.sig}
+        0002-check-for-unusual-file-harder.patch
+        0010-bfd-Increase-_bfd_coff_max_nscns-to-65279.patch
+        0110-binutils-mingw-gnu-print.patch
+        0410-windres-handle-spaces.patch
+        0500-fix-weak-undef-symbols-after-image-base-change.patch
+        2001-ld-option-to-move-default-bases-under-4GB.patch)
+sha256sums=('e81d9edf373f193af428a0f256674aea62a9d74dfe93f65192d4eae030b0f3b0'
+            'SKIP'
+            '2c99345fc575c3a060d6677537f636c6c4154fac0fde508070f3b6296c1060d4'
+            '604e76e0f702ced493ee22aa3c1768b4776b2008a7d70ae0dd35fe5be3522141'
+            'ec199975c6af5586f00730b7246b1db7d956879ef569c023d998226aa7960a1f'
+            '8d8608dc18a697138f9e51415e0c6559a85c49b11943700a823a74fb205419e9'
+            'd0cd7344421054fb38339cf8b6622e4e80ecda94750ffb429b702b247a5f28ae'
+            '35518b99189914b4700fad7a42b3268f67b5b6f4e23ffcc6cd9ef31b7b2b7c9f')
+validpgpkeys=('EAF1C276A747E9ED86210CBAC3126D3B4AE55E93'
+              '3A24BC1E8FB409FA9F14371813FCEF89DD9E3C4F')
+
+apply_patch_with_msg() {
+  for _patch in "$@"
+  do
+    msg2 "Applying ${_patch}"
+    patch -p1 -i "${srcdir}/${_patch}"
+  done
+}
+
+prepare() {
+  cd ${srcdir}/${_realname}-${pkgver}
+  apply_patch_with_msg \
+    0002-check-for-unusual-file-harder.patch \
+    0010-bfd-Increase-_bfd_coff_max_nscns-to-65279.patch \
+    0110-binutils-mingw-gnu-print.patch
+
+  # https://sourceware.org/bugzilla/show_bug.cgi?id=4356
+  apply_patch_with_msg \
+    0410-windres-handle-spaces.patch
+
+  # Add an option to change default bases back below 4GB to ease transition
+  # https://github.com/msys2/MINGW-packages/issues/7027
+  # https://github.com/msys2/MINGW-packages/issues/7023
+  apply_patch_with_msg 2001-ld-option-to-move-default-bases-under-4GB.patch
+
+  # https://sourceware.org/pipermail/binutils/2021-April/116019.html
+  apply_patch_with_msg 0500-fix-weak-undef-symbols-after-image-base-change.patch
+}
+
+build() {
+  if [ "${CARCH}" = "x86_64" ]; then
+    local _conf='--enable-64-bit-bfd'
+  else
+    local _conf=''
+    LDFLAGS+=" -Wl,--large-address-aware"
+  fi
+
+  if check_option "debug" "y"; then
+    CFLAGS+=" -O0"
+  fi
+
+  [[ -d ${srcdir}/build-${MINGW_CHOST} ]] && rm -rf ${srcdir}/build-${MINGW_CHOST}
+  mkdir -p build-${MINGW_CHOST} && cd build-${MINGW_CHOST}
+  ../${_realname}-${pkgver}/configure \
+    --build=${MINGW_CHOST} \
+    --host=${MINGW_CHOST} \
+    --target=${MINGW_CHOST} \
+    --prefix=${MINGW_PREFIX} \
+    --disable-werror \
+    --enable-lto \
+    --with-sysroot=${MINGW_PREFIX} \
+    --with-libiconv-prefix=${MINGW_PREFIX} \
+    ${_conf} \
+    --enable-nls \
+    --disable-rpath \
+    --disable-multilib \
+    --enable-install-libiberty \
+    --enable-plugins \
+    --disable-shared
+
+  make
+}
+
+check() {
+  cd ${srcdir}/build-${MINGW_CHOST}
+
+  # unset LDFLAGS as testsuite makes assumptions about which ones are active
+  # do not abort on errors - manually check log files
+  make LDFLAGS="" -k check || true
+}
+
+package() {
+  cd ${srcdir}/build-${MINGW_CHOST}
+  make DESTDIR=${pkgdir} install
+
+  mkdir -p ${pkgdir}${MINGW_PREFIX}/{lib,include}/${_realname}
+  mkdir -p ${pkgdir}${MINGW_PREFIX}/${MINGW_CHOST}/include
+  cp ${pkgdir}${MINGW_PREFIX}/include/ansidecl.h ${pkgdir}${MINGW_PREFIX}/${MINGW_CHOST}/include/
+  mv ${pkgdir}${MINGW_PREFIX}/include/*.h ${pkgdir}${MINGW_PREFIX}/include/${_realname}
+  mv ${pkgdir}${MINGW_PREFIX}/lib/*.a ${pkgdir}${MINGW_PREFIX}/lib/${_realname}
+
+  # https://github.com/msys2/MINGW-packages/issues/7890
+  rm "${pkgdir}${MINGW_PREFIX}/lib/bfd-plugins/libdep.a"
+
+  find ${pkgdir}${MINGW_PREFIX}/share -type f -iname "opcodes.mo" -o -iname "bfd.mo" | xargs -rtl1 rm
+
+  install -Dm644 ${srcdir}/${_realname}-${pkgver}/COPYING      ${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/COPYING
+  install -Dm644 ${srcdir}/${_realname}-${pkgver}/COPYING.LIB  ${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/COPYING.LIB
+  install -Dm644 ${srcdir}/${_realname}-${pkgver}/COPYING3     ${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/COPYING3
+  install -Dm644 ${srcdir}/${_realname}-${pkgver}/COPYING3.LIB ${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/COPYING3.LIB
+}
