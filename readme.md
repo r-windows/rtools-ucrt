@@ -10,5 +10,6 @@ This reposity has few experimental updates for [rtools-packages](https://github.
  - Static build of mingw-w64 winpthreads 
  - Latest stable version of GCC-10
  - Recent version of ICU.
+ - Recent version of tcl/tk
 
-Currently we only deploy these build for the new ucrt64 toolchains, to avoid potential breaking changes in the existing mingw32 and mingw64 toolchains in rtools40.
+Currently we only deploy these new versions for the new ucrt64 toolchains, to avoid potential changes in behavior for the existing mingw32 and mingw64 toolchains in rtools40.
