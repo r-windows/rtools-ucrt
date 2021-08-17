@@ -18,9 +18,9 @@ pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}"
          "${MINGW_PACKAGE_PREFIX}-clang-analyzer"
          "${MINGW_PACKAGE_PREFIX}-clang-tools-extra"
          "${MINGW_PACKAGE_PREFIX}-compiler-rt"
-         "${MINGW_PACKAGE_PREFIX}-libc++"
-         "${MINGW_PACKAGE_PREFIX}-libc++abi"
-         "${MINGW_PACKAGE_PREFIX}-libunwind"
+#         "${MINGW_PACKAGE_PREFIX}-libc++"
+#         "${MINGW_PACKAGE_PREFIX}-libc++abi"
+#         "${MINGW_PACKAGE_PREFIX}-libunwind"
          "${MINGW_PACKAGE_PREFIX}-lld"
          "${MINGW_PACKAGE_PREFIX}-lldb"
          "${MINGW_PACKAGE_PREFIX}-llvm"
@@ -369,6 +369,7 @@ build() {
     -GNinja \
     -DFFI_INCLUDE_DIR="${FFI_INCLUDE_DIR}" \
     -DLIBCLANG_BUILD_STATIC=ON \
+    -DLIBCLANG_BUILD_SHARED=OFF \
     -DLIBOMP_FORTRAN_MODULES=$( (( _clangprefix )) && echo "OFF" || echo "ON" ) \
     -DLLD_DEFAULT_LD_LLD_IS_MINGW=ON \
     -DLLDB_ENABLE_LIBEDIT=OFF \
@@ -386,6 +387,7 @@ build() {
     -DLLVM_INSTALL_UTILS=ON \
     -DLLVM_POLLY_LINK_INTO_TOOLS=OFF \
     -DLLDB_EMBED_PYTHON_HOME=OFF \
+    -DLIBOMP_ENABLE_SHARED=OFF \
     "${common_cmake_args[@]}" \
     "${platform_config[@]}" \
     ../llvm
@@ -395,29 +397,29 @@ build() {
   # Disable automatic installation of components that go into subpackages
   # -i.orig to check what has been removed in-case it starts dropping more than it should
   #
-  sed -i.orig '/\(clang\|lld\|lldb\|polly\)\/cmake_install.cmake/d' tools/cmake_install.cmake
-  sed -i.orig '/\(extra\|scan-build\|scan-view\)\/cmake_install.cmake/d' tools/clang/tools/cmake_install.cmake
-  sed -i.orig '/\(compiler-rt\|libcxxabi\|libcxx\|openmp\|libunwind\)\/cmake_install.cmake/d' projects/cmake_install.cmake
+  # sed -i.orig '/\(clang\|lld\|lldb\|polly\)\/cmake_install.cmake/d' tools/cmake_install.cmake
+  # sed -i.orig '/\(extra\|scan-build\|scan-view\)\/cmake_install.cmake/d' tools/clang/tools/cmake_install.cmake
+  # sed -i.orig '/\(compiler-rt\|libcxxabi\|libcxx\|openmp\|libunwind\)\/cmake_install.cmake/d' projects/cmake_install.cmake
 
-  cd "${srcdir}"
+  # cd "${srcdir}"
 
-  [[ -d build-libcxx-static-${MSYSTEM} ]] && rm -rf build-libcxx-static-${MSYSTEM}
-  mkdir build-libcxx-static-${MSYSTEM} && cd build-libcxx-static-${MSYSTEM}
+  # [[ -d build-libcxx-static-${MSYSTEM} ]] && rm -rf build-libcxx-static-${MSYSTEM}
+  # mkdir build-libcxx-static-${MSYSTEM} && cd build-libcxx-static-${MSYSTEM}
 
-  MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
-  ${MINGW_PREFIX}/bin/cmake.exe \
-    -GNinja \
-    -DCMAKE_CXX_FLAGS="${CXXFLAGS} -D_LIBCPP_DISABLE_VISIBILITY_ANNOTATIONS" \
-    -DLIBCXX_ENABLE_SHARED=OFF \
-    -DLIBCXX_ENABLE_STATIC=ON \
-    -DLIBCXXABI_ENABLE_STATIC_UNWINDER=ON \
-    -DLIBUNWIND_ENABLE_SHARED=OFF \
-    -DLIBUNWIND_ENABLE_STATIC=ON \
-    "${common_cmake_args[@]}" \
-    "${libcxx_config[@]}" \
-    ../llvm
+  # MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
+  # ${MINGW_PREFIX}/bin/cmake.exe \
+  #   -GNinja \
+  #   -DCMAKE_CXX_FLAGS="${CXXFLAGS} -D_LIBCPP_DISABLE_VISIBILITY_ANNOTATIONS" \
+  #   -DLIBCXX_ENABLE_SHARED=OFF \
+  #   -DLIBCXX_ENABLE_STATIC=ON \
+  #   -DLIBCXXABI_ENABLE_STATIC_UNWINDER=ON \
+  #   -DLIBUNWIND_ENABLE_SHARED=OFF \
+  #   -DLIBUNWIND_ENABLE_STATIC=ON \
+  #   "${common_cmake_args[@]}" \
+  #   "${libcxx_config[@]}" \
+  #   ../llvm
 
-  ${MINGW_PREFIX}/bin/cmake.exe --build . -- unwind cxxabi cxx cxx_experimental
+  # ${MINGW_PREFIX}/bin/cmake.exe --build . -- unwind cxxabi cxx cxx_experimental
 }
 
 check() {
@@ -483,19 +485,19 @@ package_compiler-rt() {
   rmdir "${pkgdir}${MINGW_PREFIX}/bin/" 2>/dev/null || true
 }
 
-package_libc++() {
-  pkgdesc="C++ Standard Library (mingw-w64)"
-  url="https://libcxx.llvm.org/"
-  # provides=($( (( _clangprefix )) && echo \
-  #            "${MINGW_PACKAGE_PREFIX}-gcc-libs" \
-  #            || true))
-  # depends=($( (( _clangprefix )) && echo \
-  #            "${MINGW_PACKAGE_PREFIX}-libunwind" \
-  #            || echo "${MINGW_PACKAGE_PREFIX}-gcc-libs"))
+# package_libc++() {
+#   pkgdesc="C++ Standard Library (mingw-w64)"
+#   url="https://libcxx.llvm.org/"
+#   # provides=($( (( _clangprefix )) && echo \
+#   #            "${MINGW_PACKAGE_PREFIX}-gcc-libs" \
+#   #            || true))
+#   # depends=($( (( _clangprefix )) && echo \
+#   #            "${MINGW_PACKAGE_PREFIX}-libunwind" \
+#   #            || echo "${MINGW_PACKAGE_PREFIX}-gcc-libs"))
 
-  #DESTDIR="${pkgdir}" cmake --install "${srcdir}/build-libcxx-shared-${MSYSTEM}/projects/libcxx"
-  DESTDIR="${pkgdir}" cmake --install "${srcdir}/build-libcxx-static-${MSYSTEM}/projects/libcxx"
-}
+#   #DESTDIR="${pkgdir}" cmake --install "${srcdir}/build-libcxx-shared-${MSYSTEM}/projects/libcxx"
+#   DESTDIR="${pkgdir}" cmake --install "${srcdir}/build-libcxx-static-${MSYSTEM}/projects/libcxx"
+# }
 
 package_openmp() {
   pkgdesc="OpenMP library (mingw-w64)"
@@ -505,23 +507,23 @@ package_openmp() {
   DESTDIR="${pkgdir}" cmake --install "${srcdir}/build-${MSYSTEM}/projects/openmp"
 }
 
-package_libc++abi() {
-  pkgdesc="C++ Standard Library Support (mingw-w64)"
-  url="https://libcxxabi.llvm.org/"
-  # depends=($( (( _clangprefix )) || echo \
-  #            "${MINGW_PACKAGE_PREFIX}-gcc-libs"))
+# package_libc++abi() {
+#   pkgdesc="C++ Standard Library Support (mingw-w64)"
+#   url="https://libcxxabi.llvm.org/"
+#   # depends=($( (( _clangprefix )) || echo \
+#   #            "${MINGW_PACKAGE_PREFIX}-gcc-libs"))
 
-  DESTDIR="${pkgdir}" cmake --install "${srcdir}/build-libcxx-static-${MSYSTEM}/projects/libcxxabi"
-}
+#   DESTDIR="${pkgdir}" cmake --install "${srcdir}/build-libcxx-static-${MSYSTEM}/projects/libcxxabi"
+# }
 
-package_libunwind() {
-  pkgdesc='A new implementation of a stack unwinder for C++ exceptions (mingw-w64)'
-  url='https://llvm.org/'
-  # depends=($( (( _clangprefix )) || echo "${MINGW_PACKAGE_PREFIX}-gcc-libs"))
+# package_libunwind() {
+#   pkgdesc='A new implementation of a stack unwinder for C++ exceptions (mingw-w64)'
+#   url='https://llvm.org/'
+#   # depends=($( (( _clangprefix )) || echo "${MINGW_PACKAGE_PREFIX}-gcc-libs"))
 
-  #DESTDIR="${pkgdir}" cmake --install "${srcdir}/build-libcxx-shared-${MSYSTEM}/projects/libunwind"
-  DESTDIR="${pkgdir}" cmake --install "${srcdir}/build-libcxx-static-${MSYSTEM}/projects/libunwind"
-}
+#   #DESTDIR="${pkgdir}" cmake --install "${srcdir}/build-libcxx-shared-${MSYSTEM}/projects/libunwind"
+#   DESTDIR="${pkgdir}" cmake --install "${srcdir}/build-libcxx-static-${MSYSTEM}/projects/libunwind"
+# }
 
 package_lld() {
   pkgdesc="Linker tools for LLVM (mingw-w64)"
