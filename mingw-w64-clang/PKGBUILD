@@ -364,6 +364,8 @@ build() {
   [[ -d build-${MSYSTEM} ]] && rm -rf build-${MSYSTEM}
   mkdir build-${MSYSTEM} && cd build-${MSYSTEM}
 
+
+  #Jeroen: -DLIBOMP_ENABLE_SHARED=OFF seems disabled for Windows
   MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
   ${MINGW_PREFIX}/bin/cmake.exe \
     -GNinja \
@@ -387,7 +389,6 @@ build() {
     -DLLVM_INSTALL_UTILS=ON \
     -DLLVM_POLLY_LINK_INTO_TOOLS=OFF \
     -DLLDB_EMBED_PYTHON_HOME=OFF \
-    -DLIBOMP_ENABLE_SHARED=OFF \
     "${common_cmake_args[@]}" \
     "${platform_config[@]}" \
     ../llvm
