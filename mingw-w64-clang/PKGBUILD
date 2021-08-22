@@ -509,6 +509,9 @@ package_openmp() {
   # depends=($( (( _clangprefix )) || echo "${MINGW_PACKAGE_PREFIX}-gcc-libs"))
 
   DESTDIR="${pkgdir}" cmake --install "${srcdir}/build-${MSYSTEM}/projects/openmp"
+
+  # Jeroen: not sure why this happens, seems a bug
+  mv "${pkgdir}${MINGW_PREFIX}/lib/libomp.a.a" "${pkgdir}${MINGW_PREFIX}/lib/libomp.a"
 }
 
 # package_libc++abi() {
