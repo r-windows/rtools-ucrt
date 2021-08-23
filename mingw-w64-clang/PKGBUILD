@@ -393,6 +393,7 @@ build() {
     -DLLVM_INSTALL_UTILS=ON \
     -DLLVM_POLLY_LINK_INTO_TOOLS=OFF \
     -DLLDB_EMBED_PYTHON_HOME=OFF \
+    -DCMAKE_CXX_FLAGS="${CXXFLAGS} -fcommon" \
     "${common_cmake_args[@]}" \
     "${platform_config[@]}" \
     ../llvm
