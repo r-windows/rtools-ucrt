@@ -1,10 +1,10 @@
-# Rtools Testing
+# Rtools-ucrt
 
-Experimental toolchains and libraries used for the ucrt64 compilers in rtools40.
+Toolchains and libraries for the ucrt64 compilers in rtools40.
 
 ## Details
 
-This reposity has few experimental updates for [rtools-packages](https://github.com/r-windows/rtools-packages), mainly for UCRT support:
+This reposity has several extra package [rtools-packages](https://github.com/r-windows/rtools-packages) used only for the toolchains that target the UCRT:
 
  - Latest git version of mingw-w64-{headers,crt} (many ucrt related fixes)
  - Static build of mingw-w64 winpthreads 
@@ -12,4 +12,4 @@ This reposity has few experimental updates for [rtools-packages](https://github.
  - Recent version of ICU.
  - Recent version of tcl/tk
 
-Currently we only deploy these new versions for the new ucrt64 toolchains, to avoid potential changes in behavior for the existing mingw32 and mingw64 toolchains in rtools40.
+ We only deploy these for the new ucrt64 toolchains. All other ucrt packages are built from [rtools-packages](https://github.com/r-windows/rtools-packages) just like the mingw32 and mingw64 binaries used by Rtools 4.0 and up.
