@@ -15,7 +15,7 @@ pkgver=10.3.0
 #_majorver=${pkgver:0:1}
 #_sourcedir=${_realname}-${_majorver}-${_snapshot}
 _sourcedir=${_realname}-${pkgver}
-pkgrel=9802
+pkgrel=9803
 pkgdesc="GCC for the MinGW-w64"
 arch=('any')
 url="https://gcc.gnu.org"
@@ -62,6 +62,8 @@ source=("https://ftp.gnu.org/gnu/gcc/${_realname}-${pkgver%%+*}/${_realname}-${p
         0160-libbacktrace-seh.patch
         0200-ms_printf-improvements.patch
         0203-backport-longjmp-fix.patch
+        gcc10-4-driver-access-fix.diff
+        gcc10-6-reorder-unwind-info.diff
         gcc10-7-allow-ucrt-c99-format.patch
         gcc10-8-enable-reorder-blocks-and-partition-with-pragma.diff)
 sha256sums=('64f404c1a650f27fc33da242e1f2df54952e3963a49e06e73f6940f3223ac344'
@@ -89,6 +91,8 @@ sha256sums=('64f404c1a650f27fc33da242e1f2df54952e3963a49e06e73f6940f3223ac344'
             '88c1d65e763e631ad49f9a077ed631f4acac9ef4732e2818ccddaefc883b1811'
             '146ac7aec004a949e42f7da6ff66351790e56094a85f6dbe28ea583b47c8125d'
             'a1ca2f5dd55823e29f6628dd5027057636cf3d5998c438f365a84f7ec4b7eaa6'
+            'SKIP'
+            'SKIP'
             'SKIP'
             'SKIP')
 validpgpkeys=(F3691687D867B81B51CE07D9BBE43771487328A9  # bpiotrowski@archlinux.org
@@ -164,7 +168,10 @@ prepare() {
   apply_patch_with_msg \
     0203-backport-longjmp-fix.patch
 
+  # Patches from TK for compatibility with his MXE toolchain:
   apply_patch_with_msg \
+    gcc10-4-driver-access-fix.diff \
+    gcc10-6-reorder-unwind-info.diff \
     gcc10-7-allow-ucrt-c99-format.patch \
     gcc10-8-enable-reorder-blocks-and-partition-with-pragma.diff
 
