@@ -15,7 +15,7 @@ pkgver=10.3.0
 #_majorver=${pkgver:0:1}
 #_sourcedir=${_realname}-${_majorver}-${_snapshot}
 _sourcedir=${_realname}-${pkgver}
-pkgrel=9803
+pkgrel=9804
 pkgdesc="GCC for the MinGW-w64"
 arch=('any')
 url="https://gcc.gnu.org"
@@ -64,7 +64,7 @@ source=("https://ftp.gnu.org/gnu/gcc/${_realname}-${pkgver%%+*}/${_realname}-${p
         0203-backport-longjmp-fix.patch
         gcc10-4-driver-access-fix.diff
         gcc10-6-reorder-unwind-info.diff
-        gcc10-7-allow-ucrt-c99-format.patch
+        gcc10-7-allow-ucrt-c99-format.diff
         gcc10-8-enable-reorder-blocks-and-partition-with-pragma.diff)
 sha256sums=('64f404c1a650f27fc33da242e1f2df54952e3963a49e06e73f6940f3223ac344'
             'SKIP'
@@ -172,7 +172,7 @@ prepare() {
   apply_patch_with_msg \
     gcc10-4-driver-access-fix.diff \
     gcc10-6-reorder-unwind-info.diff \
-    gcc10-7-allow-ucrt-c99-format.patch \
+    gcc10-7-allow-ucrt-c99-format.diff \
     gcc10-8-enable-reorder-blocks-and-partition-with-pragma.diff
 
   # do not expect ${prefix}/mingw symlink - this should be superceded by
