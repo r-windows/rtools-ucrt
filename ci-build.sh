@@ -26,6 +26,8 @@ pacman --noconfirm --needed -S mingw-w64-${MINGW_TOOLCHAIN}-{toolchain,libtre,pk
 
 # Remove weird upstream build flags
 sed -i 's/,--default-image-base-high//' /etc/makepkg_mingw.conf
+sed -i 's/-Wp,-D_FORTIFY_SOURCE=2//g' /etc/makepkg_mingw.conf
+sed -i 's/-fstack-protector-strong//g' /etc/makepkg_mingw.conf
 
 # Initiate git
 git_config user.email 'ci@msys2.org'
@@ -48,7 +50,7 @@ execute 'Approving recipe quality' check_recipe_quality
 rm -f /mingw32/lib/*.dll.a
 rm -f /mingw64/lib/*.dll.a
 rm -f /ucrt64/lib/*.dll.a
-export PKG_CONFIG="/${MINGW_ARCH}/bin/pkg-config --static"
+#export PKG_CONFIG="/${MINGW_ARCH}/bin/pkg-config --static"
 export PKGEXT='.pkg.tar.xz'
 
 for package in "${packages[@]}"; do
