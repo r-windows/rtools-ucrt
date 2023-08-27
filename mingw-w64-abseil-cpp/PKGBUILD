@@ -1,0 +1,58 @@
+# Maintainer: Michał Łukowski <michal.lukowski@gmail.com>
+
+_realname=abseil-cpp
+pkgbase=mingw-w64-${_realname}
+pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
+pkgver=20230125.3
+pkgrel=1
+pkgdesc="Abseil Common Libraries (C++) from Google (mingw-w64)"
+arch=('any')
+mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32' 'clangarm64')
+url="https://abseil.io"
+license=('spdx:Apache-2.0')
+makedepends=("${MINGW_PACKAGE_PREFIX}-cmake"
+             "${MINGW_PACKAGE_PREFIX}-ninja")
+source=("https://github.com/abseil/abseil-cpp/archive/$pkgver/$_realname-$pkgver.tar.gz"
+        "0001-abseil-Fix-compiler-warnings.patch"
+        "0002-abseil-Remove-librt-library.patch")
+sha256sums=('5366d7e7fa7ba0d915014d387b66d0d002c03236448e1ba9ef98122c13b35c36'
+            '30fb7526d1c89f722dd0ce0c467e034370140fbf07a1ad4f91df301c7f442551'
+            '8946282db6a225b385729deb345b57e3ee75f4e859dbbc49ab7bc5604d71192f')
+
+apply_patch_with_msg() {
+  for _patch in "$@"
+  do
+    msg2 "Applying $_patch"
+    patch -Nbp1 -i "${srcdir}/$_patch"
+  done
+}
+
+prepare() {
+  cd "${_realname}-${pkgver}"
+
+  apply_patch_with_msg \
+    0001-abseil-Fix-compiler-warnings.patch \
+    0002-abseil-Remove-librt-library.patch
+}
+
+build() {
+  mkdir -p "${srcdir}/build-${MSYSTEM}" && cd "${srcdir}/build-${MSYSTEM}"
+  MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
+    ${MINGW_PREFIX}/bin/cmake \
+      -GNinja \
+      -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DBUILD_SHARED_LIBS=OFF \
+      -DCMAKE_CXX_STANDARD=17 \
+      ../${_realname}-${pkgver}
+
+  ${MINGW_PREFIX}/bin/cmake --build .
+}
+
+package() {
+  cd "${srcdir}/build-${MSYSTEM}"
+
+  DESTDIR="${pkgdir}" ${MINGW_PREFIX}/bin/cmake --install .
+
+  install -Dm644 "${srcdir}/${_realname}-${pkgver}/LICENSE" "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE"
+}
