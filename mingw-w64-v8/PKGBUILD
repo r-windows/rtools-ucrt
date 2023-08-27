@@ -142,13 +142,19 @@ prepare() {
       -e "s|@CFLAGS@|${_cflags}|g" \
       -e "s|^prefix=.*|prefix=${MINGW_PREFIX}|g" -i "${srcdir}/v8.pc"
 
-  #jeroen: fix constants for older mingw versions
+  #jeroen: fix constants and flags for older mingw versions
   sed -e "s|MEM_REPLACE_PLACEHOLDER|0x00004000|g" \
       -e "s|MEM_RESERVE_PLACEHOLDER|0x00040000|g" \
       -e "s|MEM_PRESERVE_PLACEHOLDER|0x00000002|g" \
       -e "s|CREATE_WAITABLE_TIMER_HIGH_RESOLUTION|0x00000002|g" \
       -e "s|MEM_COALESCE_PLACEHOLDERS|0x00000001|g" \
       -i src/base/platform/platform-win32.cc
+
+  sed -e "s|#include <windows.globalization.h>||g" \
+      -i third_party/abseil-cpp/absl/time/internal/cctz/src/time_zone_lookup.cc
+
+  sed -e 's|"winspool",|"winspool","ssp",|g' \
+      -i ${srcdir}/build/config/BUILD.gn
 }
 
 build() {
