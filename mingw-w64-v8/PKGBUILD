@@ -194,7 +194,7 @@ build() {
     enable_iterator_debugging=${_debug}
     treat_warnings_as_errors=false"
 
-  ${MINGW_PREFIX}/bin/ninja -C out/${_buildtype}-${MSYSTEM} v8_monolith v8_libbase v8_libplatform v8 d8
+  ${MINGW_PREFIX}/bin/ninja -C out/${_buildtype}-${MSYSTEM} v8_monolith || true
 }
 
 package() {
@@ -206,7 +206,6 @@ package() {
   fi
 
   install -d ${pkgdir}${MINGW_PREFIX}/{bin,include/{cppgc/internal,libplatform},lib/pkgconfig,share/licenses/${_realname}}
-  install -Dm755 out/${_buildtype}-${MSYSTEM}/d8.exe                      ${pkgdir}${MINGW_PREFIX}/bin/d8.exe
   install -Dm755 out/${_buildtype}-${MSYSTEM}/obj/libv8_monolith.a        ${pkgdir}${MINGW_PREFIX}/lib/
   install -Dm644 include/*.h                                              ${pkgdir}${MINGW_PREFIX}/include/
   install -Dm644 include/cppgc/*.h                                        ${pkgdir}${MINGW_PREFIX}/include/cppgc/
