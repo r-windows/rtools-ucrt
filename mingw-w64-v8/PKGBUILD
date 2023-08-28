@@ -177,6 +177,8 @@ build() {
     _clang=true
   fi
 
+  export CXX="/c/rtools43/x86_64-w64-mingw32.static.posix/bin/g++"
+  export CC="/c/rtools43/x86_64-w64-mingw32.static.posix/bin/gcc"
   # generate build files
   ${MINGW_PREFIX}/bin/gn gen out/${_buildtype}-${MSYSTEM} --args="
     target_cpu=\"${_arch}\"
@@ -194,6 +196,7 @@ build() {
     enable_iterator_debugging=${_debug}
     treat_warnings_as_errors=false"
 
+  #export PATH="/c/rtools43/x86_64-w64-mingw32.static.posix/bin:$PATH"
   ${MINGW_PREFIX}/bin/ninja -C out/${_buildtype}-${MSYSTEM} v8_monolith v8_libbase v8_libplatform v8 d8
 }
 
