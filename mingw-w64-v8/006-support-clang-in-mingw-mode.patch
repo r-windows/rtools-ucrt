@@ -1,0 +1,18 @@
+diff --git a/include/v8config.h b/include/v8config.h
+index 33bb3f9..37719c9 100644
+--- a/include/v8config.h
++++ b/include/v8config.h
+@@ -340,6 +340,13 @@ path. Add it with -I<path> to the command line
+ 
+ #if defined(__GNUC__)  // Clang in gcc mode.
+ # define V8_CC_GNU 1
++# if defined(__MINGW32__)
++#  define V8_CC_MINGW32 1
++# endif
++# if defined(__MINGW64__)
++#  define V8_CC_MINGW64 1
++# endif
++# define V8_CC_MINGW (V8_CC_MINGW32 || V8_CC_MINGW64)
+ #endif
+ 
+ # define V8_HAS_ATTRIBUTE_ALWAYS_INLINE (__has_attribute(always_inline))
