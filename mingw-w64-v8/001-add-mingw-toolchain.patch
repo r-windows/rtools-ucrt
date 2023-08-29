@@ -43,7 +43,7 @@ index 53511ac36..8c57b86b3 100644
 +      "wininet",
 +      "winmm",
 +      "winspool",
-+      "ws2_32",
++      "ws2_32", "ssp",
  
        # Please don't add more stuff here. We should actually be making this
        # list smaller, since all common things should be covered. If you need
